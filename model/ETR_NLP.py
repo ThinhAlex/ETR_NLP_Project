@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
-import torch.nn.init as init
 from torch.optim import Adam
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import StepLR 
 import torchvision.models as models
 
 from torchvision import datasets, transforms
@@ -124,7 +123,7 @@ def main():
   img_list = os.listdir(root_img)
   print("Number of images:", len(img_list))
 
-  root_labels = "ETR_NLP/dataset/list_attr_celeba.csv/list_attr_celeba.csv"
+  root_labels = "ETR_NLP/dataset/list_attr_celeba.csv"
   df = pd.read_csv(root_labels, encoding='utf-8')
   df = df.drop(columns = ["image_id"])
 
@@ -143,7 +142,6 @@ def main():
 transforms.transforms.RandomHorizontalFlip(),
 transforms.transforms.ColorJitter(brightness=0.2, contrast=0.2)]))
 
-  data = celeb_data
   train_ratio = 0.7
   test_ratio = 0.15
   val_ratio = 0.15
@@ -196,15 +194,12 @@ transforms.transforms.ColorJitter(brightness=0.2, contrast=0.2)]))
   
   etr_nlp = ETR_NLP(C_in, C_out, gamma, prims, T)
   resnet = models.resnet18(pretrained = True)
-  nn.Dropout(p = 0.5)
   
   in_fts = resnet.fc.in_features
   resnet.fc = nn.Linear(in_fts, 2)
   
   optimizer = Adam(resnet.parameters(), lr = 0.0001)
   scheduler = StepLR(optimizer, step_size=3, gamma=0.1)
-  torch.nn.utils.clip_grad_norm_(resnet.parameters(), max_norm=1.0)
-  
   
   resnet.to(device)
   etr_nlp.to(device)
@@ -237,7 +232,7 @@ transforms.transforms.ColorJitter(brightness=0.2, contrast=0.2)]))
           # Get labels
           y_train = torch.tensor([labels[j,i] for j in id[start:end]]).to(device)
 
-          # //L/oss each branch
+          # Loss each branch
           loss_shared = nn.CrossEntropyLoss()(shared_branch, y_train)
           loss_specif = nn.CrossEntropyLoss()(specif_branch, y_train)
 
@@ -282,8 +277,8 @@ transforms.transforms.ColorJitter(brightness=0.2, contrast=0.2)]))
     print("\nKeyboardInterrupt: Saving models...")
 
     # Save the model when KeyboardInterrupt occurs
-    torch.save(resnet.state_dict(), "ETR_NLP/saved_model_ascp/resnet.pth")
-    torch.save(etr_nlp.state_dict(), "ETR_NLP/saved_model_ascp/etr_nlp.pth")
+    torch.save(resnet.state_dict(), "ETR_NLP/saved_model_scp/resnet.pth")
+    torch.save(etr_nlp.state_dict(), "ETR_NLP/saved_model_scp/etr_nlp.pth")
     print("Model saved!")
 
 if __name__ == '__main__':   
